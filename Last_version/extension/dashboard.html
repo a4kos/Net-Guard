@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Нет Гард</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <div class="logo">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <h1>Нет Гард</h1>
+          </div>
+          <div class="header-status">
+            <div class="status-indicator" id="connectionStatus">
+              <span class="status-dot"></span>
+              <span class="status-text">Connected</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Сканирани разширения</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+            </div>
+            <div class="stat-value" id="totalExtensions">0</div>
+            <div class="stat-change positive">
+              <span>Active monitoring</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Открити опасности</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <div class="stat-value" id="totalThreats">0</div>
+            <div class="stat-change" id="threatChange">
+              <span>Няма нови опасности!</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Критична опасност!</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div class="stat-value critical" id="criticalThreats">0</div>
+            <div class="stat-change">
+              <span>Обърнете внимание!</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Рискови разширения.</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M12 8v4" />
+                <path d="M12 16h.01" />
+              </svg>
+            </div>
+            <div class="stat-value warning" id="extensionsAtRisk">0</div>
+            <div class="stat-change">
+              <span>Трябва да се прегледа.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2>Threat Activity</h2>
+              <div class="chart-legend">
+                <span class="legend-item"
+                  ><span class="legend-dot critical"></span>Критична</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-dot high"></span>Висока</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-dot medium"></span>Средна</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-dot low"></span>Ниска</span
+                >
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="threatChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2>Опасности по категория</h2>
+            </div>
+            <div class="chart-container">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Extensions and Threats -->
+        <section class="content-grid">
+          <!-- Extensions List -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Monitored Extensions</h2>
+              <button class="btn-refresh" id="refreshExtensions">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div class="panel-content">
+              <div class="extensions-list" id="extensionsList">
+                <div class="empty-state">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                  <p>No extensions monitored yet</p>
+                  <span>Install the browser extension to start monitoring</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Threat Feed -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Live Threat Feed</h2>
+              <div class="filter-buttons">
+                <button class="filter-btn active" data-severity="all">
+                  All
+                </button>
+                <button class="filter-btn" data-severity="critical">
+                  Critical
+                </button>
+                <button class="filter-btn" data-severity="high">High</button>
+              </div>
+            </div>
+            <div class="panel-content">
+              <div class="threat-feed" id="threatFeed">
+                <div class="empty-state">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <p>No threats detected</p>
+                  <span>Your extensions are secure</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Threat Detail Modal -->
+    <div class="modal" id="threatModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Threat Details</h2>
+          <button class="modal-close" id="closeModal">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" id="threatDetails">
+          <!-- Threat details will be inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "name": "net-guard-electron",
+  "version": "1.0.0",
+  "description": "Net Guard Extension ported to Electron",
+  "main": "main.js",
+  "homepage": "page.tsx",
+  "author": "Alex Genov",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"npm run dev:react\" \"npm run electron:dev\"",
+    "dev:react": "react-scripts start",
+    "electron:dev": "wait-on http://localhost:5137 && electron . --dev",
+    "build": "react-scripts build && npm run electron:build",
+    "electron:build": "electron-builder",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "react-scripts": "^5.0.0",
+    "wait-on": "^7.0.0"
+  },
+  "build": {
+    "appId": "com.netguard.app",
+    "productName": "Net Guard",
+    "protocols": [
+      {
+        "name": "Net Guard Protocol",
+        "schemes": [
+          "netguard"
+        ]
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "electron-adapter/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "mimeTypes": [
+        "x-scheme-handler/netguard"
+      ]
+    }
+  }
+}

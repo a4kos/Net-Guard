@@ -1,0 +1,7 @@
+{
+  "name": "com.security.extension_monitor",
+  "description": "Extension Security Monitor - Native Messaging Host",
+  "path": "/absolute/path/to/desktop-app/app.py",
+  "type": "stdio",
+  "allowed_extensions": ["extension-monitor@security.local"]
+}

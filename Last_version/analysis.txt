@@ -1,0 +1,20 @@
+a = Analysis(
+    ['app.py'],
+    pathex=['.','backend'],
+    binaries=[],
+    datas=['ai.py', '.', 
+    ('Last_version', 'Last_version'),
+    ('templates', 'templates'),
+    ('static', 'static')],
+    hiddenimports=['flask_socketio', 
+        'engineio.async_drivers.threading',
+        'Last_version'],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
+)
+
+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
