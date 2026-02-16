@@ -43,8 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // 4. Dashboard Button - opens the web dashboard in a new tab
-  //    Replace DASHBOARD_URL with your deployed Next.js dashboard URL
-  const DASHBOARD_URL = "https://page.tsx";
+  const DASHBOARD_URL = "https://netguard.noit.eu";
 
   dashboardBtn.addEventListener("click", () => {
     chrome.tabs.create({ url: DASHBOARD_URL });

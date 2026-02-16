@@ -1,116 +1,66 @@
-/**
- * Electron Preload Script
- * Securely exposes Chrome API adapter to renderer process
- */
-
 const { contextBridge, ipcRenderer } = require("electron");
 
-// Allowed IPC channels for security
-const VALID_SEND_CHANNELS = ["tabs-create", "tabs-executeScript"];
-const VALID_INVOKE_CHANNELS = [
-  "runtime-sendMessage",
-  "storage-get",
-  "storage-set",
-  "storage-remove",
-  "alarms-create",
-  "management-getAll"
-];
-const VALID_RECEIVE_CHANNELS = [
-  "runtime-onInstalled",
-  "runtime-onMessage",
-  "alarms-onAlarm"
-];
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
+contextBridge.exposeInMainWorld("electronAPI", {
+  // Storage API (chrome.storage.local replacement)
+  storageGet: (keys) => ipcRenderer.invoke("storage-get", keys),
+  storageSet: (items) => ipcRenderer.invoke("storage-set", items),
+  storageRemove: (keys) => ipcRenderer.invoke("storage-remove", keys),
+  storageClear: () => ipcRenderer.invoke("storage-clear"),
 
-// Create a secure bridge for Chrome APIs
-contextBridge.exposeInMainWorld("chrome", {
-  // runtime API
-  runtime: {
-    onInstalled: {
-      addListener: (callback) => {
-        ipcRenderer.on("runtime-onInstalled", (_event, detail) => {
-          callback(detail);
-        });
-      }
-    },
-    onMessage: {
-      addListener: (callback) => {
-        ipcRenderer.on("runtime-onMessage", (_event, request) => {
-          callback(request, { id: "electron-netguard" }, (response) => {
-            ipcRenderer.send("runtime-onMessage-response", response);
-          });
-        });
-      }
-    },
-    sendMessage: (message, callback) => {
-      ipcRenderer
-        .invoke("runtime-sendMessage", message)
-        .then((result) => {
-          if (typeof callback === "function") callback(result);
-        })
-        .catch((err) => {
-          console.error("[Net Guard Preload] sendMessage error:", err);
-          if (typeof callback === "function") callback(undefined);
-        });
-    },
-    id: "electron-netguard"
+  // Runtime messaging (chrome.runtime.sendMessage replacement)
+  sendMessage: (message) => ipcRenderer.invoke("runtime-sendMessage", message),
+  onMessage: (callback) => {
+    ipcRenderer.on("runtime-message", (event, message) => callback(message));
   },
 
-  // storage API
+  // Extension management (chrome.management.getAll replacement)
+  managementGetAll: () => ipcRenderer.invoke("chrome-management-getAll"),
+
+  // Tabs API (chrome.tabs replacement)
+  tabsCreate: (options) => ipcRenderer.invoke("tabs-create", options),
+
+  // General IPC
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  on: (channel, callback) => {
+    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+  },
+  removeAllListeners: (channel) => {
+    ipcRenderer.removeAllListeners(channel);
+  }
+});
+
+// Create chrome API polyfill for backward compatibility
+contextBridge.exposeInMainWorld("chrome", {
   storage: {
     local: {
       get: (keys) => ipcRenderer.invoke("storage-get", keys),
-      set: (data) => ipcRenderer.invoke("storage-set", data),
-      remove: (keys) => ipcRenderer.invoke("storage-remove", keys)
+      set: (items) => ipcRenderer.invoke("storage-set", items),
+      remove: (keys) => ipcRenderer.invoke("storage-remove", keys),
+      clear: () => ipcRenderer.invoke("storage-clear")
     }
   },
-
-  // alarms API
-  alarms: {
-    create: (name, alarmInfo) =>
-      ipcRenderer.invoke("alarms-create", name, alarmInfo),
-    onAlarm: {
+  runtime: {
+    sendMessage: (message, callback) => {
+      ipcRenderer.invoke("runtime-sendMessage", message).then(callback);
+    },
+    onMessage: {
       addListener: (callback) => {
-        ipcRenderer.on("alarms-onAlarm", (_event, alarm) => {
-          callback(alarm);
+        ipcRenderer.on("runtime-message", (event, message) => {
+          callback(message, {}, () => {});
         });
       }
     }
   },
-
-  // management API
   management: {
-    getAll: () => ipcRenderer.invoke("management-getAll")
+    getAll: () => ipcRenderer.invoke("chrome-management-getAll")
   },
-
-  // tabs API
   tabs: {
-    create: (createProperties) => {
-      if (VALID_SEND_CHANNELS.includes("tabs-create")) {
-        ipcRenderer.send("tabs-create", createProperties);
-      }
-    },
-    executeScript: (tabId, details) => {
-      if (VALID_SEND_CHANNELS.includes("tabs-executeScript")) {
-        ipcRenderer.send("tabs-executeScript", tabId, details);
-      }
+    create: (options, callback) => {
+      ipcRenderer.invoke("tabs-create", options).then(callback);
     }
   }
 });
 
-// Expose a utility for custom IPC messages with channel validation
-contextBridge.exposeInMainWorld("electronAPI", {
-  sendMessage: (channel, data) => {
-    if (VALID_SEND_CHANNELS.includes(channel)) {
-      ipcRenderer.send(channel, data);
-    }
-  },
-  onMessage: (channel, callback) => {
-    if (VALID_RECEIVE_CHANNELS.includes(channel)) {
-      const handler = (_event, data) => callback(data);
-      ipcRenderer.on(channel, handler);
-      // Return a cleanup function
-      return () => ipcRenderer.removeListener(channel, handler);
-    }
-    return () => {};
-  }
-});
+console.log("Preload script loaded successfully");

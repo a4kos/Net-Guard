@@ -4,11 +4,11 @@ from openai import AsyncOpenAI
 # 1. Initialize the Client with a Groq-compatible model
 # Tip: Hardcode for your project or use a fallback string
 
-api_key = os.environ.get('gsk_...HLyl') or ("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")
+api_key = os.environ.get('gsk_...Jni4') or ("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")
 
 client = AsyncOpenAI(
     api_key=api_key,
-    base_url="https://api.groq.com/openai/v1",
+    base_url="https://console.groq.com/keys",
 )
 
 

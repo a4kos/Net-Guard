@@ -17,7 +17,6 @@ base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(base_path)
 sys.path.append(os.path.join(base_path, 'backend'))
 
-# Now, use a direct import instead of the 'backend.' prefix
 try:
     from threat_intelligence import ThreatIntelligence
 except ImportError:
@@ -50,7 +49,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'extension_security',
-    'user': 'postgres',
+    'user': 'admin',
     'password': 'postgres',
     'port': 5500
 }

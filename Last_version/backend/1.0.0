@@ -1,0 +1,17 @@
+Collecting asyncio-contextmanager
+  Downloading asyncio-contextmanager-1.0.1.tar.gz (2.1 kB)
+  Installing build dependencies: started
+  Installing build dependencies: still running...
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: asyncio-contextmanager
+  Building wheel for asyncio-contextmanager (pyproject.toml): started
+  Building wheel for asyncio-contextmanager (pyproject.toml): finished with status 'done'
+  Created wheel for asyncio-contextmanager: filename=asyncio_contextmanager-1.0.1-py3-none-any.whl size=2589 sha256=4fcf0840b898a12944b53b8a9613807666d3a50ea1c9819867673aad14aa8e8b
+  Stored in directory: c:\users\user\appdata\local\pip\cache\wheels\08\9a\f7\04bd04a52769cdd988f989d6254c710b323bdad82b8a3af4c6
+Successfully built asyncio-contextmanager
+Installing collected packages: asyncio-contextmanager
+Successfully installed asyncio-contextmanager-1.0.1
